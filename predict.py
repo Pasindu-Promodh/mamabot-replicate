@@ -5,9 +5,12 @@ import os
 
 class Predictor(BasePredictor):
     def setup(self):
-        """Load the model into memory"""
-        # Get Hugging Face token from environment
+        """Load the model into memory during build"""
+        # Get token from environment variable set during build
         hf_token = os.environ.get("HUGGING_FACE_HUB_TOKEN")
+        
+        if not hf_token:
+            raise ValueError("HUGGING_FACE_HUB_TOKEN environment variable not set")
         
         # Load tokenizer and model
         self.tokenizer = AutoTokenizer.from_pretrained(
