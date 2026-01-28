@@ -15,7 +15,6 @@ jobs:
           echo "Disk space before cleanup:"
           df -h
           
-          # Remove unnecessary packages and files
           sudo rm -rf /usr/share/dotnet
           sudo rm -rf /opt/ghc
           sudo rm -rf /usr/local/share/boost
@@ -23,8 +22,6 @@ jobs:
           sudo rm -rf /usr/local/lib/android
           sudo rm -rf /usr/share/swift
           sudo apt-get clean
-          
-          # Remove Docker images
           docker system prune -a -f
           
           echo "Disk space after cleanup:"
@@ -37,16 +34,18 @@ jobs:
         run: |
           sudo curl -o /usr/local/bin/cog -L "https://github.com/replicate/cog/releases/latest/download/cog_$(uname -s)_$(uname -m)"
           sudo chmod +x /usr/local/bin/cog
-          
-      - name: Verify Cog installation
-        run: cog --version
-          
-      - name: Push to Replicate
+          cog --version
+      
+      - name: Login and Push to Replicate
         env:
           HUGGING_FACE_HUB_TOKEN: ${{ secrets.HUGGING_FACE_HUB_TOKEN }}
           COG_TOKEN: ${{ secrets.COG_TOKEN }}
         run: |
-          echo "Available disk space before build:"
+          echo "Available disk space:"
           df -h
-          cog login --token-stdin <<< "$COG_TOKEN"
+          
+          # Login to Replicate
+          echo "$COG_TOKEN" | cog login --token-stdin
+          
+          # Push directly - cog will build and push in one step
           cog push r8.im/pasindu-promodh/mamabot-llama
