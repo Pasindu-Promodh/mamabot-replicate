@@ -1,5 +1,3 @@
-# mamabot-replicate
-
 # MamaBot-Llama on Replicate
 
 This repository contains the deployment code for MamaBot-Llama, a fine-tuned language model for maternal healthcare assistance.
