@@ -10,6 +10,26 @@ jobs:
   push:
     runs-on: ubuntu-latest
     steps:
+      - name: Free up disk space
+        run: |
+          echo "Disk space before cleanup:"
+          df -h
+          
+          # Remove unnecessary packages and files
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /usr/local/share/boost
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /usr/share/swift
+          sudo apt-get clean
+          
+          # Remove Docker images
+          docker system prune -a -f
+          
+          echo "Disk space after cleanup:"
+          df -h
+          
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -26,5 +46,7 @@ jobs:
           HUGGING_FACE_HUB_TOKEN: ${{ secrets.HUGGING_FACE_HUB_TOKEN }}
           COG_TOKEN: ${{ secrets.COG_TOKEN }}
         run: |
+          echo "Available disk space before build:"
+          df -h
           cog login --token-stdin <<< "$COG_TOKEN"
           cog push r8.im/pasindu-promodh/mamabot-llama
