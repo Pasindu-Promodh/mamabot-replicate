@@ -36,16 +36,34 @@ jobs:
           sudo chmod +x /usr/local/bin/cog
           cog --version
       
-      - name: Login and Push to Replicate
+      - name: Login to Replicate
         env:
-          HUGGING_FACE_HUB_TOKEN: ${{ secrets.HUGGING_FACE_HUB_TOKEN }}
           COG_TOKEN: ${{ secrets.COG_TOKEN }}
         run: |
-          echo "Available disk space:"
+          echo "$COG_TOKEN" | cog login --token-stdin
+      
+      - name: Build Docker Image
+        env:
+          HUGGING_FACE_HUB_TOKEN: ${{ secrets.HUGGING_FACE_HUB_TOKEN }}
+        run: |
+          echo "Available disk space before build:"
           df -h
           
-          # Login to Replicate
-          echo "$COG_TOKEN" | cog login --token-stdin
+          # Build the image and capture the ID
+          echo "Building image..."
+          cog build 2>&1 | tee build.log
           
-          # Push directly - cog will build and push in one step
+          # Extract the image ID from build output
+          IMAGE_ID=$(docker images --format "{{.ID}}" | head -n 1)
+          echo "Built image ID: $IMAGE_ID"
+          
+          # Tag it properly for Replicate
+          docker tag $IMAGE_ID r8.im/pasindu-promodh/mamabot-llama:latest
+          
+          echo "Image tagged successfully"
+          docker images | grep mamabot-llama
+          
+      - name: Push to Replicate
+        run: |
+          echo "Pushing to Replicate..."
           cog push r8.im/pasindu-promodh/mamabot-llama
