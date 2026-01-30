@@ -114,7 +114,7 @@ class Predictor(BasePredictor):
         self.model = AutoModelForCausalLM.from_pretrained(
             "HelpMumHQ/MamaBot-Llama",
             token=hf_token,
-            dtype=torch.bfloat16,
+            torch_dtype=torch.bfloat16,
             device_map="auto"
         )
 
