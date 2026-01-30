@@ -1,7 +1,10 @@
+#predict.py
 from cog import BasePredictor, Input
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
 import os
+import accelerate
+
 
 class Predictor(BasePredictor):
     def setup(self):
@@ -23,7 +26,8 @@ class Predictor(BasePredictor):
         self.model = AutoModelForCausalLM.from_pretrained(
             'HelpMumHQ/MamaBot-Llama',
             token=hf_token,
-            torch_dtype=torch.bfloat16,
+            # torch_dtype=torch.bfloat16,
+            dtype=torch.bfloat16,
             device_map="auto"
         )
         
