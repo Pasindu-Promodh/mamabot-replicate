@@ -16,10 +16,11 @@ build:
   python_packages:
   - "numpy<2"
   - "torch==2.2.0"
-  - "transformers==4.41.2"
+  - "transformers==4.44.2"
   - "accelerate==0.30.1"
-  - "bitsandbytes==0.41.3"
+  - "bitsandbytes==0.43.1"
   - "sentencepiece==0.1.99"
+
 
 
 predict: "predict.py:Predictor"
