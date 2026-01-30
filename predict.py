@@ -5,28 +5,26 @@ import os
 
 class Predictor(BasePredictor):
     def setup(self):
-        """Load the model into memory during build"""
-        # Get token from environment variable set during build
-        hf_token = os.environ.get("HUGGING_FACE_HUB_TOKEN")
+        """Load the model into memory - model should already be cached from build"""
+        print("Loading model from cache...")
         
-        if not hf_token:
-            raise ValueError("HUGGING_FACE_HUB_TOKEN environment variable not set")
-        
-        # Load tokenizer and model
+        # Model should already be downloaded during build
+        # We don't need the token here since files are cached
         self.tokenizer = AutoTokenizer.from_pretrained(
             'HelpMumHQ/MamaBot-Llama',
-            token=hf_token
+            local_files_only=False  # Will use cached files if available
         )
         
         self.model = AutoModelForCausalLM.from_pretrained(
             'HelpMumHQ/MamaBot-Llama',
-            token=hf_token,
             torch_dtype=torch.bfloat16,
-            device_map="auto"
+            device_map="auto",
+            local_files_only=False  # Will use cached files if available
         )
         
-        # Set chat template
         self.tokenizer.chat_template = "{%- for message in messages %}{{ bos_token + '[INST] ' + message['content'] + ' [/INST]' if message['role'] == 'user' else ' ' + message['content'] + ' ' + eos_token }}{%- endfor %}"
+        
+        print("Model loaded successfully!")
 
     def predict(
         self,
@@ -49,24 +47,20 @@ class Predictor(BasePredictor):
     ) -> str:
         """Generate response to maternal healthcare question"""
         
-        # Prepare messages
         messages = [{"role": "user", "content": prompt}]
         
-        # Apply chat template
         formatted_prompt = self.tokenizer.apply_chat_template(
             messages, 
             tokenize=False, 
             add_generation_prompt=True
         )
         
-        # Tokenize
         inputs = self.tokenizer(
             formatted_prompt, 
             return_tensors='pt', 
             truncation=True
         ).to(self.model.device)
         
-        # Generate
         with torch.no_grad():
             outputs = self.model.generate(
                 **inputs,
@@ -76,10 +70,8 @@ class Predictor(BasePredictor):
                 do_sample=True
             )
         
-        # Decode
         text = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
         
-        # Extract response
         if '[/INST]' in text:
             response = text.split('[/INST]')[-1].strip()
             if '[INST]' in response:

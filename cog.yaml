@@ -5,10 +5,13 @@ build:
     - "libgl1-mesa-glx"
     - "libglib2.0-0"
   python_packages:
+    - "numpy<2"  # Fix NumPy compatibility issue
     - "torch==2.1.0"
     - "transformers==4.36.0"
     - "accelerate==0.25.0"
     - "bitsandbytes==0.41.3"
     - "sentencepiece==0.1.99"
+  run:
+    - "python download_model.py"
 
 predict: "predict.py:Predictor"
