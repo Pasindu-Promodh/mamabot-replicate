@@ -9,6 +9,10 @@ on:
 jobs:
   push:
     runs-on: ubuntu-latest
+    env:
+      # Make HF token available to ALL steps
+      HUGGING_FACE_HUB_TOKEN: ${{ secrets.HUGGING_FACE_HUB_TOKEN }}
+      
     steps:
       - name: Free up disk space
         run: |
@@ -43,14 +47,11 @@ jobs:
           echo "$COG_TOKEN" | cog login --token-stdin
       
       - name: Build Docker Image
-        env:
-          HUGGING_FACE_HUB_TOKEN: ${{ secrets.HUGGING_FACE_HUB_TOKEN }}
         run: |
           echo "Available disk space before build:"
           df -h
           
-          # Build the image and capture the ID
-          echo "Building image..."
+          echo "Building image (this will download the model during setup)..."
           cog build 2>&1 | tee build.log
           
           # Extract the image ID from build output

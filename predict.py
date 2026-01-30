@@ -5,23 +5,29 @@ import os
 
 class Predictor(BasePredictor):
     def setup(self):
-        """Load the model into memory - model should already be cached from build"""
-        print("Loading model from cache...")
+        """Load the model into memory"""
+        print("Loading model...")
         
-        # Model should already be downloaded during build
-        # We don't need the token here since files are cached
+        # Get HF token from environment (passed during build)
+        hf_token = os.environ.get("HUGGING_FACE_HUB_TOKEN")
+        
+        # Load tokenizer
+        print("Downloading/loading tokenizer...")
         self.tokenizer = AutoTokenizer.from_pretrained(
             'HelpMumHQ/MamaBot-Llama',
-            local_files_only=False  # Will use cached files if available
+            token=hf_token
         )
         
+        # Load model
+        print("Downloading/loading model (this may take a few minutes on first run)...")
         self.model = AutoModelForCausalLM.from_pretrained(
             'HelpMumHQ/MamaBot-Llama',
+            token=hf_token,
             torch_dtype=torch.bfloat16,
-            device_map="auto",
-            local_files_only=False  # Will use cached files if available
+            device_map="auto"
         )
         
+        # Set chat template
         self.tokenizer.chat_template = "{%- for message in messages %}{{ bos_token + '[INST] ' + message['content'] + ' [/INST]' if message['role'] == 'user' else ' ' + message['content'] + ' ' + eos_token }}{%- endfor %}"
         
         print("Model loaded successfully!")
